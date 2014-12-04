@@ -1,0 +1,109 @@
+Basic overview of files:
+
+Needs python2.2
+Needs pyserial lib (http://pyserial.sourceforge.net/), also needs diff patch
+   applied (util/pyserial.diff)
+Needs geoid.bin in /dev/shm...create via geoid/egm96bin.py (see this script
+   for URL to EGM96 WGS84 geoid height file)
+cp xlaprs.conf.dist xlaprs.conf (config.py reads it in)
+
+Core stuff
+------------------
+aprs.py       'AprsStation' class - struct to hold info on an APRS station
+
+              'AprsMessage' class - struct to hold info on an APRS message
+
+              'Aprs' class - thread that grabs packets from tnc, parses, 
+               and updates AprsStation objects in the db
+
+              'AprsCalc' class - thread that periodically calculates useful
+               metainfo on APRS stations (ordered/filtered lists of stations
+               for example), APRS messages, and puts the info in the db.
+               
+config.py     'Config' class loads config from file to db, saves config from
+               db to file. Config in this case means aprs/tnc/display params.
+               Also loads/saves contents of aprs/stations and aprs/messages
+               into the state file xlaprs.state
+
+db.py         'Db' class -- maintains a central repository of data in memory so
+               that various threads can contribute data (gps for example) or get
+               at global objects that they need (display object for example)
+
+pymobile.py    deprecated...see xlaprs.py
+              
+vector.py      'Vector' class contains a speed/course and lots of useful
+                conversions thereon.
+
+waypoint.py    'Waypoint' class contains a lattitude/longitude/altitude and
+               lots of useful conversions thereon.
+
+xlaprs.py      MAIN PROGRAM starts threads, binds devices to serial ports.
+               Should use some sort of 'device/serial port' config file so
+               it's not hard-coded to my hardware.
+
+Devices/Data
+------------------
+gps.py        GPS device base class
+m12.py        Motorola M12 GPS - currently has lots of debugging crud in it
+nmea.py       NMEA GPS - should be running with few bugs now.  dies on the
+              occasional misformated sentence.  prolly needs a big try/except
+              loop around the parse.
+nogps.py      Allows use of system with a static GPS location - useful for
+              testing without a gps attached
+
+tnc.py        'AX25Packet' class contains an AX25 packet, does some
+              assembly work for sending to a TNC raw
+
+              'Tnc' base class - thread+interface that all TNCs should adhere to;
+               saves rxed packets in a queue ready for others (Aprs thread) to grab,
+               lets others (Aprs thread) enqueue packets for tx
+
+Display
+------------------
+display.py    'Display' base class
+              'Glc' class (matrix orbital glc LCDs)
+
+router.py     'Router' class controls switching between screens (controls focus)
+screen.py     'Screen' base class
+               Each screen is a thread that starts running when the program
+               starts, and is then blocked by a semphore until told to
+               go into a display loop. Each screen has a command queue
+               that the router object dumps commands into if the screen
+               has 'focus', so the screen can act on user input.
+
+aprsscr.py    'APRSScreen' class -- displays list of APRS stations
+              'APRSDetailScreen' class -- display detail on a single APRS station
+configscr.py  'ConfigScreen' class -- edits/displays config file
+testscr.py    'TestScreen' class -- for testing stuff
+gpsscr.py     'GPSScreen' class -- displaying GPS status/info
+mesgscr.py    'MesgScreen' class -- currently only displays rx'd APRS messages
+mapscr.py     'MapScreen' class -- very broken attempt at plotting APRS stations
+
+
+widget.py     Various classes that Screens use to draw things. A widget is not
+              a separate thread - it executes under the context of the screen
+              that created it. This is necessary to have only one thread (the 
+              currently active screen) sending display commands at a time.
+
+
+Misc
+------------------
+
+tcpconsole.py  'Tcpconsole' class - listens on a tcp port so you can telnet
+               to it and send it basic commands. It can send commands to the 
+               Router object for testing, and can dump stuff from the db.
+
+               This should evolve into some sort of standardized queriable
+               interface to the entire db and displays/screens should get all
+               their data through here rather than hitting up the db object
+               directly. That way the screen/display/controller stuff could
+               be put into a separate process from the gps/tnc/aprs/db threads.
+
+units.py       Unit conversion functions
+
+geoid.py       'Geoid' class takes lat/lon and returns geoid height offset
+               (difference between GPS spheroid altitude and actual terrain)
+               by doing a lookup in the file generated by the utility in
+               the geoid/ subdir. M12 uses this because it doesn't do it 
+               internally (most garmin/other NMEA GPSes do it on their own)
+

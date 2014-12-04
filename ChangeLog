@@ -1,0 +1,149 @@
+* 22 Mar 2004 - will@loopfree.net
+- add WX decode of cXXXgXXX for stations that don't send wind in XXX/XXX format
+- fix up wx display a bit to avoid junk on lcd, give wind report in more 
+   standard format (close to "wind 335 at 12" like the aviation standard")
+- tweak aprsline widget placement to be on correct boundaries of 6
+
+* 14 Dec 2003 - kglueck@viz.tamu.edu
+- display.py: added enqueueing of commands 'beacon' and 'usr1' to
+  facilitate extra buttons in my setup (beacon uses I, usr1 uses
+  F).  usr1 command isn't currently used anywhere.
+- router.py: accepts 'beacon' command and sets the beaconnow flag.
+  beacon is currently a global command, not localized to a specific
+  display screen.
+- tcpconsole.py: changes beacon tcpcommand to enqueue a beacon
+  command to the router rather than directly set the beaconnow
+  flag.
+- aprsscr.py/gpsscr.py: added hooks to display APM information via
+  apm module found at http://www.iapp.de/~riemer/projects/apm.py/
+  near screen name.  if apm.py not installed, apm stuff is ignored.
+- tnc.py: changed the printing of the tx'd frame from direct to a
+  repr(frame) so it wouldn't mess with the terminal screen.
+
+* 27 Oct 2003 - kglueck@viz.tamu.edu
+- aprsscr.py: fixed a goof I did yesterday...
+
+* 26 Oct 2003 - kglueck@viz.tamu.edu
+- aprs.py: fixed aging of messages
+- aprsscr.py: fixed counter on bottom status bar
+
+* 26 Oct 2003 - will@loopfree.net
+- aprs.py - change parsing structure around a bit -- DispatchPacket
+  func now handles sending packets off to various ParseXXX funcs.
+  ParseXXX funcs call DecodeXXX to decode subsets of packet data.
+  rmed radix argument from getfloat, was breaking lots of stuff
+  rmed dupe ultimeter decoding code
+- TODO/README - convert to unix newline format from DOS (whoops!)
+
+* 19 Oct 2003 - kglueck@viz.tamu.edu
+- NOTE: if you've used the pickling feature added on Oct 16, you
+  will need to delete your xlaprs.state file as structure of
+  AprsMessage class has been fixed.  It'll run, but will bail out
+  when you display the message screen.
+- aprs.py: messaging updates...more to come
+- widget.py: updated Mesgline to include other updates and slightly
+  reformated into more readable format
+- aprsscr.py/mesgscr.py: fixed counter at bottom of screen
+- display.py: added SetBacklightOn() and Off() to Glc class
+- tcpconsole.py/router.py: fixed braindead way I originally put
+  beaconnow in
+
+* 16 Oct 2003 - kglueck@viz.tamu.edu
+- aprs.py: added aging of messages (via config/aprs/maxmsgage) and
+  also auto dropping of message to keep our total in memory <= 60
+  NOTE: this value is hardcoded now...should it be configurable in
+  the config file?
+- aprs.py: changed a few debug 'levels' to allow some stuff to be
+  printed and other not.
+- aprs.py: added support to auto answer ?APRSS and ?APRSP queries
+- aprs.py: added beginnings of hooks to auto re-tx unack'd messages
+- config.py: added loading and saving of aprs/messages and
+  aprs/stations structures from db via python's pickle module
+- geoid.py: added __getstate__() and __setstate__() to allow geoid
+  class to be pickled (python cannot pickle file objects)
+- xlaprs.py: added a call to config.Save() at end to save state and
+  config
+- aprsscr.py: fixed bug in pressing Left on Detail screen would bail
+
+* 15 Oct 2003 - kglueck@viz.tamu.edu
+- nogps.py: created to allow a static gps position to be used w/o
+  a gps attached to the system.  pulls time from system clock.
+- xlaprs.py: added hook for nogps
+
+* 14 Oct 2003 - kglueck@viz.tamu.edu
+- mesgscr.py: created to display messages received.  still needs work
+  to display all features
+- xlaprs.py: added mesgscr to lcd screen list after aprs details
+- aprs.py: fixed bug in original default for message type
+- tcpconsole.py: added 'getmsg' command to display messages in list.
+  syntax is 'getmsg CALL-SSID/hash' (ex: N5TLT-12/-437279042) or just
+  'getmsg 0'
+- widget.py: added MesgLine class
+
+* 12 Oct 2003 - kglueck@viz.tamu.edu
+- aprsscr.py: fixed an error I coded in the display of gusts/wind
+- tnc.py: added a few returns after recv bad KISS data to keep tnc from
+  bombing out with an error
+- aprs.py: added aprsdebug at the top of Aprs class to toggle debug data
+- aprs.py: added an AprsMessage class for messaging and various code to
+  parse and assemble messages (ParseMesg and TxMesg respectively)
+- aprs.py: added hooks to parse stuff in Parse...this needs to be cleaned
+  up a bit still.
+- aprs.py: added to AprsCalc code to sort messages by time received
+- tcpconsole.py: added a 'msg' command to be able to send a raw message.
+  this is BAAAD...it BLINDLY sends what is given...be careful!
+
+* 10 Oct 2003 - kglueck@viz.tamu.edu
+- tcpconsole.py: added 'putkey' to allow changing of in memory database
+  objects without going through step-by-step interface.  warning, the data
+  sent to db w/o much error checking, so...use at your own risk!
+- tcpconsole.py: added 'beacon' to allow an immediate beacon of position
+  tx is enabled.
+- router.py: added 'beacon' command
+- aprs.py: added beaconnow code to MaybeTx
+- aprs.py: added wx decoding for !! Ultimeter reports
+- aprs.py: fixed bug in agestr in GetAgeStrLong()
+- aprsscr.py: added a detail screen to display wx data.  (cmd 'r' from
+  APRS Detail screen to get to it)
+
+* 09 Oct 2003 - kglueck@viz.tamu.edu
+- fixed a few snafu's with wx decoding
+- added an option on getint/getfloat to be able to specify number base for
+  conversion between bases...if not specified, defaults to base 10
+- put generic wx decoding in a new function ParseGenericWX
+
+* 08 Oct 2003 - kglueck@viz.tamu.edu
+- backed out change made on 01 Oct 2003 in display.py (reverted back to
+  rev 1.4 of display.py)  NOTE: xon=1 functionality in diff provided by
+  Will and added to cvs as util/pyserial.diff.  Diff made on pyserial-1.18
+- added a large try/except block around parse that catches the exception
+  IndexError when bad data is in the very very wild APRS stream
+- added some wx variables and wx payload decoding for complete wx reports,
+  these variables are currently unused elsewhere, just being show on the
+  debug output.  need to test, expand, and add to aprs station detail
+  screen
+- added wx decoding of Ultimeter packet payloads...untested
+
+* 01 Oct 2003 - kglueck@viz.tamu.edu
+- fixed bug in display.py's setting of Xon/Xoff flow control of serial port
+
+* 30 Sep 2003 - kglueck@viz.tamu.edu
+- fixed bug in GPGSA sentence parsing (corrected where we got mode from)
+
+* 29 Sep 2003 - kglueck@viz.tamu.edu
+- made changes to nmea.py to make store data in db same as m12.py code
+- renamed pymobile.py to xlaprs.py
+- added to xlaprs.conf  and xlaprs.py (display,gps,tnc)/(enable,port),
+  tnc/enable currently unused
+- added to xlaprs.conf gps/type (possible settings, 'm12' or 'nmea')
+- added to xlaprs.conf misc/debug setting, added debug hooks in xlaprs.py
+  and nmea.py
+- per discussions with Will, these config values should be moved to a
+  static config file 
+
+* 24 Sep 2003 - will@loopfree.net
+- create Changelog (duh)
+
+* 20 Sep 2003 - will@loopfree.net
+- tag version XLAPRS1_0
+- put project in CVS, create README, TODO, some cleanup

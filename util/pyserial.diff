@@ -1,0 +1,49 @@
+--- serialposix.py      Thu Dec  5 15:15:28 2002
++++ ../../pyserial-1.18-mine/serial/serialposix.py      Sun Mar 23 
+23:20:39 2003
+@@ -142,6 +142,7 @@
+                  stopbits=STOPBITS_ONE, #number of stopbits
+                  timeout=None,          #set a timeout value, None for waiting forever
+                  xonxoff=0,             #enable software flow control
++                 xon=0,                 #enable xon only, not xoff
+                  rtscts=0,              #enable RTS/CTS flow control
+                  ):
+         """init comm port"""
+@@ -219,6 +220,17 @@
+                 self.iflag = self.iflag |  (TERMIOS.IXON|TERMIOS.IXOFF)
+             else:
+                 self.iflag = self.iflag & ~(TERMIOS.IXON|TERMIOS.IXOFF)
++        #xon
++        if hasattr(TERMIOS, 'IXANY'):
++            if xon:
++                self.iflag = self.iflag |  (TERMIOS.IXON)
++            else:
++                self.iflag = self.iflag & ~(TERMIOS.IXON)
++        else:
++            if xon:
++                self.iflag = self.iflag |  (TERMIOS.IXON)
++            else:
++                self.iflag = self.iflag & ~(TERMIOS.IXON)
+         #rtscts
+         if hasattr(TERMIOS, 'CRTSCTS'):
+             if rtscts:
+@@ -372,6 +384,18 @@
+         else:
+             fcntl.ioctl(self.fd, TIOCMBIC, TIOCM_RTS_str)
+ 
++    def setVSTART(self, val):
++        self.__tcgetattr()  #read current settings
++        #setup VSTART
++        self.cc[TERMIOS.VSTART] = val
++        self.__tcsetattr()
++
++    def setVSTOP(self, val):
++        self.__tcgetattr()  #read current settings
++        #setup VSTOP
++        self.cc[TERMIOS.VSTOP] = val
++        self.__tcsetattr()
++
+ if __name__ == '__main__':
+     s = Serial(0,
+                  baudrate=19200,        #baudrate
+

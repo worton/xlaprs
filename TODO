@@ -1,0 +1,39 @@
+Todo...
+
+
+GPS stuff:
+-M12 fix occasional choking/dying on malformed serial input. This thread
+should *never* die.
+
+Startup/config:
+-Make xlaprs read a config file to determine which device objects/threads
+to start up and which serial ports to tell them to talk to
+-config.py using some standardized python serialization type stuff would
+be waaaay nicer
+
+APRS features:
+-Messaging (currently rx only on _most_ formats)
+-query support (tx, rx) 
+-being a digipeater (also multiple TNCs!)
+-IGATE (client and server mode.. might handle this as tnc-derived class
+that talks TCP like IGATEs are expected to)
+-look up what this is and add capability of parsing it:
+aprs>  KC6YRU > APU25H v ['WA6YLB-7', 'WIDE2-1'] : ;IRLP 8340*102302z3704.55N/11926.00WmIRLP Node 8340 146.775 - 141.3
+
+Core architecture:
+-Start separating db into two parts -- APRS/GPS/TNC/device config
+data separate from display/screen/interface config.
+Which will facilitate...
+
+-Figure out what sort of interface tcpconsole.py could provide to
+display/ screens/command line clients/web interfaces that wouldn't be
+a total pain to work with. Maybe there's some python remote-procedure
+or remote-object-access-over-socket type stuff that could make the
+"core"'s APRS/GPS/etc data easily accessible without having to define
+a whole query language/serialized message infrastructure.
+Which will facilitate...
+
+-Some sort of command-line client.
+
+Administrative:
+-Add copyrights/license to all files
